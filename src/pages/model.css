@@ -1,0 +1,34 @@
+.model-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .model-popup-content {
+    width: 80%;
+    height: 80%;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px;
+    background-color: #ff5f5f;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
