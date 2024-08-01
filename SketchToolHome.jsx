@@ -8,21 +8,26 @@ import eraserButtonIcon from '../assets/images/eraser.png';
 import elementButtonIcon from '../assets/images/element.png';
 import penButtonIcon from '../assets/images/pen.png';
 import designButtonIcon from '../assets/images/design.png';
-import backButtonIcon from '../assets/images/back.png'; // 되돌리기 아이콘 임포트
+import backButtonIcon from '../assets/images/back.png';
+import handIcon from '../assets/images/hand.png';
 
 const SketchToolHome = () => {
   const navigate = useNavigate();
-  const [selectedTool, setSelectedTool] = useState('pen'); // 선택된 도구 상태
-  const [image, setImage] = useState(null); // 업로드된 이미지 상태
-  const canvasRef = useRef(null); // 캔버스 엘리먼트 참조
-  const contextRef = useRef(null); // 캔버스 컨텍스트 참조
-  const [isDrawing, setIsDrawing] = useState(false); // 그리기 중 여부 상태
-  const [history, setHistory] = useState([]); // 캔버스 상태 히스토리
-  const [currentStep, setCurrentStep] = useState(-1); // 현재 히스토리 단계
-  const [scale, setScale] = useState(1); // 캔버스 스케일 상태
-  const [isAltPressed, setIsAltPressed] = useState(false); // Alt 키 상태
+  const [selectedTool, setSelectedTool] = useState('pen');
+  const [image, setImage] = useState(null);
+  const canvasRef = useRef(null);
+  const contextRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [currentStep, setCurrentStep] = useState(-1);
+  const [scale, setScale] = useState(1);
+  const [isAltPressed, setIsAltPressed] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
 
-  // 이미지 업로드 핸들러
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -35,10 +40,10 @@ const SketchToolHome = () => {
           const scale = 1.3;
           canvas.width = img.width * scale;
           canvas.height = img.height * scale;
-          context.clearRect(0, 0, canvas.width, canvas.height); // 이전 그리기 내용 지우기
+          context.clearRect(0, 0, canvas.width, canvas.height);
           context.drawImage(img, 0, 0, canvas.width, canvas.height);
           setImage(canvas.toDataURL('image/png'));
-          saveHistory(canvas); // 업로드 후 히스토리에 저장
+          saveHistory(canvas);
         };
         img.src = e.target.result;
       };
@@ -46,7 +51,6 @@ const SketchToolHome = () => {
     }
   };
 
-  // 이미지 저장 핸들러
   const handleSaveImage = () => {
     const canvas = canvasRef.current;
     const link = document.createElement('a');
@@ -55,26 +59,22 @@ const SketchToolHome = () => {
     link.click();
   };
 
-  // 모델 적용 핸들러
   const handleApplyModel = () => {
     if (image) {
       const canvas = canvasRef.current;
       const dataUrl = canvas.toDataURL('image/png');
-      const newWindow = window.open('/model', '_blank', 'width=800,height=600');
-      newWindow.modelImage = dataUrl;
+      navigate('/model', { state: { image: dataUrl } });
     } else {
       alert('이미지를 먼저 업로드해주세요.');
     }
   };
 
-  // 히스토리에 캔버스 상태 저장
   const saveHistory = (canvas) => {
     const dataUrl = canvas.toDataURL();
     setHistory((prevHistory) => [...prevHistory.slice(0, currentStep + 1), dataUrl]);
     setCurrentStep((prevStep) => prevStep + 1);
   };
 
-  // 되돌리기 핸들러
   const handleUndo = () => {
     if (currentStep > 0) {
       setCurrentStep((prevStep) => prevStep - 1);
@@ -89,18 +89,53 @@ const SketchToolHome = () => {
     }
   };
 
-  // 캔버스 줌 핸들러
   const handleWheel = (event) => {
     if (isAltPressed) {
       event.preventDefault();
-      const newScale = Math.min(Math.max(0.5, scale + event.deltaY * -0.001), 3);
-      setScale(newScale);
       const canvas = canvasRef.current;
-      canvas.style.transform = `scale(${newScale})`;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+      const newScale = Math.min(Math.max(0.1, scale + event.deltaY * -0.001), 5);
+      const scaleDiff = newScale - scale;
+      setScale(newScale);
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const dx = (centerX - mouseX) * scaleDiff;
+      const dy = (centerY - mouseY) * scaleDiff;
+      setOffsetX((prevOffsetX) => prevOffsetX + dx);
+      setOffsetY((prevOffsetY) => prevOffsetY + dy);
+
+      canvas.style.transform = `scale(${newScale}) translate(${offsetX + dx}px, ${offsetY + dy}px)`;
     }
   };
 
-  // Alt 키 눌림 상태 관리
+  const startPanning = (event) => {
+    if (selectedTool === 'hand') {
+      setIsPanning(true);
+      setStartX(event.clientX);
+      setStartY(event.clientY);
+    }
+  };
+
+  const pan = (event) => {
+    if (isPanning) {
+      const dx = (event.clientX - startX) * 0.5;
+      const dy = (event.clientY - startY) * 0.5;
+      setOffsetX((prevOffsetX) => prevOffsetX + dx);
+      setOffsetY((prevOffsetY) => prevOffsetY + dy);
+      const canvas = canvasRef.current;
+      canvas.style.transform = `scale(${scale}) translate(${offsetX + dx}px, ${offsetY + dy}px)`;
+      setStartX(event.clientX);
+      setStartY(event.clientY);
+    }
+  };
+
+  const stopPanning = () => {
+    setIsPanning(false);
+  };
+
   const handleKeyDown = (event) => {
     if (event.key === 'Alt') {
       setIsAltPressed(true);
@@ -113,7 +148,6 @@ const SketchToolHome = () => {
     }
   };
 
-  // 컴포넌트 마운트 시 캔버스 초기화
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
@@ -125,40 +159,45 @@ const SketchToolHome = () => {
     window.addEventListener('wheel', handleWheel);
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('mousedown', startPanning);
+    window.addEventListener('mousemove', pan);
+    window.addEventListener('mouseup', stopPanning);
 
     return () => {
       window.removeEventListener('wheel', handleWheel);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('mousedown', startPanning);
+      window.removeEventListener('mousemove', pan);
+      window.removeEventListener('mouseup', stopPanning);
     };
-  }, [scale, isAltPressed]);
+  }, [scale, isAltPressed, isPanning, offsetX, offsetY]);
 
-  // 그리기 시작 핸들러
   const startDrawing = ({ nativeEvent }) => {
-    const { offsetX, offsetY } = nativeEvent;
-    contextRef.current.beginPath();
-    contextRef.current.moveTo(offsetX, offsetY);
-    setIsDrawing(true);
-  };
-
-  // 그리기 종료 핸들러
-  const finishDrawing = () => {
-    contextRef.current.closePath();
-    setIsDrawing(false);
-    saveHistory(canvasRef.current); // 그리기 종료 후 히스토리에 저장
-  };
-
-  // 그리기 중 핸들러
-  const draw = ({ nativeEvent }) => {
-    if (!isDrawing) {
-      return;
+    if (selectedTool === 'pen' || selectedTool === 'eraser') {
+      const { offsetX, offsetY } = nativeEvent;
+      contextRef.current.beginPath();
+      contextRef.current.moveTo(offsetX, offsetY);
+      setIsDrawing(true);
     }
-    const { offsetX, offsetY } = nativeEvent;
-    contextRef.current.lineTo(offsetX, offsetY);
-    contextRef.current.stroke();
   };
 
-  // 도구 변경 시 컨텍스트 업데이트
+  const finishDrawing = () => {
+    if (isDrawing) {
+      contextRef.current.closePath();
+      setIsDrawing(false);
+      saveHistory(canvasRef.current);
+    }
+  };
+
+  const draw = ({ nativeEvent }) => {
+    if (isDrawing) {
+      const { offsetX, offsetY } = nativeEvent;
+      contextRef.current.lineTo(offsetX, offsetY);
+      contextRef.current.stroke();
+    }
+  };
+
   useEffect(() => {
     if (selectedTool === 'eraser') {
       contextRef.current.strokeStyle = 'white';
@@ -195,9 +234,10 @@ const SketchToolHome = () => {
         <SidebarButton icon={elementButtonIcon} label="요소" onClick={() => setSelectedTool('element')} />
         <SidebarButton icon={penButtonIcon} label="펜" onClick={() => setSelectedTool('pen')} />
         <SidebarButton icon={designButtonIcon} label="문패지정" onClick={() => setSelectedTool('design')} />
-        <SidebarButton icon={backButtonIcon} label="되돌리기" onClick={handleUndo} /> {/* 되돌리기 버튼 */}
+        <SidebarButton icon={backButtonIcon} label="되돌리기" onClick={handleUndo} />
+        <SidebarButton icon={handIcon} onClick={() => setSelectedTool('hand')} />
       </div>
-      <div className="canvas-container">
+      <div className={`canvas-container ${isPanning ? 'canvas-panning' : ''}`}>
         <canvas
           ref={canvasRef}
           onMouseDown={startDrawing}
