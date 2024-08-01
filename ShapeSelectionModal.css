@@ -1,0 +1,46 @@
+/* ShapeSelectionModal.css */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .modal-content h2 {
+    margin-bottom: 20px;
+  }
+  
+  .modal-content button {
+    margin: 10px;
+    padding: 10px 20px;
+    border: none;
+    background: #4b4b4b;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .modal-content button:hover {
+    background: #0056b3;
+  }
+  
+  .close-button {
+    background: #dc3545;
+  }
+  
+  .close-button:hover {
+    background: #c82333;
+  }
+  
