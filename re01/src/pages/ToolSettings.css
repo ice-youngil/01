@@ -1,0 +1,99 @@
+/* 펜 설정 창 */
+.pen-settings-picker {
+  position: absolute;
+  top: 350px;
+  left: 80px;
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 10px; /* 패딩을 늘려서 버튼과 내용의 공간을 확보합니다. */
+  width: 210px; /* 선택창의 너비를 늘려서 버튼이 충분히 보이도록 합니다. */
+  border-radius: 8px; /* 선택창의 모서리를 둥글게 합니다. */
+}
+
+/* 지우개 설정 창 */
+.eraser-settings-picker {
+  position: absolute;
+  top: 170px;
+  left: 80px;
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 20px; /* 패딩을 늘려서 버튼과 내용의 공간을 확보합니다. */
+  width: 200px; /* 선택창의 너비를 늘려서 버튼이 충분히 보이도록 합니다. */
+  border-radius: 8px; /* 선택창의 모서리를 둥글게 합니다. */
+}
+
+/* 이모지 선택기 컨테이너 */
+.emoji-picker-container {
+  position: absolute;
+  top: 250px;
+  left: 55px;
+  z-index: 1000;
+  padding: 20px; /* 패딩을 늘려서 버튼과 내용의 공간을 확보합니다. */
+  width: 300px; /* 선택창의 너비를 늘려서 버튼이 충분히 보이도록 합니다. */
+  border-radius: 8px; /* 선택창의 모서리를 둥글게 합니다. */
+}
+
+/* 색상 선택기 주변 스타일 */
+.color-picker-container {
+  position: relative;
+  background-color: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+  .pen-settings-picker, .eraser-settings-picker, .emoji-picker-container {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%; /* 반응형 디자인에서 선택창의 너비를 조정합니다. */
+  }
+}
+
+.text-tool-container {
+  position: absolute;
+  top: 80px; /* 텍스트 버튼과의 상단 간격 */
+  left: 80px; /* 텍스트 버튼 우측에 위치 */
+  z-index: 10;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+.close-button {
+  display: block;
+  margin-top: 5px; /* 닫기 버튼과 내용 사이의 공간을 확보합니다. */
+  background-color: #f44336; /* 버튼 색상 */
+  color: white; /* 버튼 텍스트 색상 */
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 15px;
+  text-align: center;
+}
+
+.close-button:hover {
+  background-color: #d32f2f; /* 버튼 hover 색상 */
+}
+
+.cancel-button {
+  display: block;
+  margin-top: 7px; /* 버튼과 내용 사이의 공간을 확보합니다. */
+  background-color: #f44336; /* 버튼 색상 */
+  color: white; /* 버튼 텍스트 색상 */
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 15px;
+  text-align: center;
+}
+

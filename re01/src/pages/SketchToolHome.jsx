@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SidebarButton from '../components/SidebarButton';
 import CanvasComponent from './CanvasComponent';
-import ColorPickerComponent from './ColorPickerComponent';
+import ToolSettings from './ToolSettings';
+import TextTool from './TextTool';
 import './SketchToolHome.css';
 import textButtonIcon from '../assets/images/text.png';
 import eraserButtonIcon from '../assets/images/eraser.png';
@@ -14,83 +15,119 @@ import handIcon from '../assets/images/hand.png';
 
 const SketchToolHome = () => {
   const navigate = useNavigate();
+  const canvasRef = useRef(null);
   const [selectedTool, setSelectedTool] = useState('pen');
   const [image, setImage] = useState(null);
+  const [toolSize, setToolSize] = useState(5);
+  const [eraserSize, setEraserSize] = useState(10);
+  const [selectedColor, setSelectedColor] = useState('#000000');
   const [history, setHistory] = useState([]);
   const [currentStep, setCurrentStep] = useState(-1);
-  const [toolSize, setToolSize] = useState(5);
-  const [eraserSize, setEraserSize] = useState(10); // 지우개 크기 상태 추가
-  const [isAltPressed, setIsAltPressed] = useState(false);
-  const [showPenSettings, setShowPenSettings] = useState(false); // 펜 설정 창 상태
-  const [showEraserSettings, setShowEraserSettings] = useState(false); // 지우개 설정 창 상태
-  const [selectedColor, setSelectedColor] = useState('#000000'); // 선택된 색상 상태
+  const [showTextTool, setShowTextTool] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showToolSettings, setShowToolSettings] = useState(false);
 
-  // 이미지 업로드 핸들러
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImage(e.target.result);
-        saveHistory(e.target.result);
+        if (canvasRef.current) {
+          canvasRef.current.clearCanvas();
+        }
+        const newImage = e.target.result;
+        setImage(newImage);
+        setHistory([newImage]);
+        setCurrentStep(0);
         setToolSize(5);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // 이미지 저장 핸들러
-  const handleSaveImage = () => {
-    document.querySelector('.save-button').click();
+  const saveHistory = () => {
+    if (canvasRef.current) {
+      const dataUrl = canvasRef.current.getMergedImage();
+      setHistory((prevHistory) => [...prevHistory.slice(0, currentStep + 1), dataUrl]);
+      setCurrentStep((prevStep) => prevStep + 1);
+    }
   };
 
-  // 모델 적용 핸들러
+  const handleUndo = () => {
+    if (currentStep > 0) {
+      setCurrentStep((prevStep) => prevStep - 1);
+      const previousImage = history[currentStep];
+      setImage(previousImage);
+    } else if (currentStep === 0 && history.length > 1) {
+      setImage(history[0]);
+    } else if (currentStep === 0 && history.length === 1) {
+      setImage(history[0]);
+    }
+  };
+
+  const handleSaveImage = () => {
+    if (canvasRef.current) {
+      const dataURL = canvasRef.current.getMergedImage();
+      const link = document.createElement('a');
+      link.download = 'sketch.png';
+      link.href = dataURL;
+      link.click();
+    }
+  };
+
   const handleApplyModel = () => {
     if (image) {
-      navigate('/model', { state: { image } });
+      const dataUrl = canvasRef.current.getMergedImage();
+      navigate('/model', { state: { image: dataUrl } });
     } else {
       alert('이미지를 먼저 업로드해주세요.');
     }
   };
 
-  // 히스토리에 이미지 상태 저장
-  const saveHistory = (image) => {
-    setHistory((prevHistory) => [...prevHistory.slice(0, currentStep + 1), image]);
-    setCurrentStep((prevStep) => prevStep + 1);
-  };
+  const handleButtonClick = (tool) => {
+    // 모든 설정 창 닫기
+    setShowTextTool(false);
+    setShowEmojiPicker(false);
+    setShowToolSettings(false);
 
-  // 되돌리기 핸들러
-  const handleUndo = () => {
-    if (currentStep > 0) {
-      setCurrentStep((prevStep) => prevStep - 1);
-      setImage(history[currentStep - 1]);
+    // 선택된 도구에 따라 동작 설정
+    if (tool === 'text') {
+      // 텍스트 도구를 선택할 때 다른 도구 비활성화
+      setSelectedTool('text');
+      setShowTextTool(true);
+    } else {
+      setSelectedTool(tool);
+
+      if (tool === 'emoji') {
+        setShowEmojiPicker(true);
+      } else if (tool === 'pen' || tool === 'eraser') {
+        setShowToolSettings(true);
+      }
     }
   };
 
-  const handleKeyDown = (event) => {
-    if (event.key === 'Alt') {
-      setIsAltPressed(true);
-    }
+  const closeSettings = () => {
+    setShowToolSettings(false);
+    setShowTextTool(false);
+    setShowEmojiPicker(false);
   };
 
-  const handleKeyUp = (event) => {
-    if (event.key === 'Alt') {
-      setIsAltPressed(false);
+  const handleAddText = (textSettings) => {
+    if (canvasRef.current) {
+      canvasRef.current.addText(textSettings);
+      saveHistory();
     }
   };
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
+  
+  const handleSelectEmoji = (emoji) => {
+    if (canvasRef.current) {
+      canvasRef.current.addEmoji(emoji);
+      saveHistory();
+    }
+  };
 
   return (
-    <div className="sketchtoolhome-container">
+    <div className="sketch-tool-home">
       <div className="top-bar">
         <button className="back-button" onClick={() => navigate('/')}>
           <span>&lt;</span>
@@ -113,70 +150,51 @@ const SketchToolHome = () => {
         </button>
       </div>
       <div className="sidebar-buttons">
-        <SidebarButton icon={textButtonIcon} label="텍스트" onClick={() => setSelectedTool('text')} />
-        <div className="eraser-tool">
-          <SidebarButton 
-            icon={eraserButtonIcon} 
-            label="지우개" 
-            onClick={() => {
-              setSelectedTool('eraser');
-              setShowEraserSettings(!showEraserSettings); // 지우개 설정 창 토글
-              setShowPenSettings(false); // 펜 설정 창 닫기
-            }} 
-          />
-          {showEraserSettings && (
-            <div className="tool-settings-picker">
-              <input 
-                type="range" 
-                min="1" 
-                max="50" 
-                value={eraserSize} 
-                onChange={(e) => setEraserSize(e.target.value)} 
-                className="tool-size-slider" 
-              />
-            </div>
-          )}
-        </div>
-        <SidebarButton icon={elementButtonIcon} label="요소" onClick={() => setSelectedTool('element')} />
-        <div className="pen-tool">
-          <SidebarButton 
-            icon={penButtonIcon} 
-            label="펜" 
-            onClick={() => {
-              setSelectedTool('pen');
-              setShowPenSettings(!showPenSettings); // 펜 설정 창 토글
-              setShowEraserSettings(false); // 지우개 설정 창 닫기
-            }} 
-          />
-          {showPenSettings && (
-            <div className="tool-settings-picker">
-              <input 
-                type="range" 
-                min="1" 
-                max="20" 
-                value={toolSize} 
-                onChange={(e) => setToolSize(e.target.value)} 
-                className="tool-size-slider" 
-              />
-              <ColorPickerComponent 
-                selectedColor={selectedColor} 
-                setSelectedColor={setSelectedColor} 
-              />
-            </div>
-          )}
-        </div>
-        <SidebarButton icon={designButtonIcon} label="문패지정" onClick={() => setSelectedTool('design')} />
+        <SidebarButton icon={textButtonIcon} label="텍스트" onClick={() => handleButtonClick('text')} />
+        <SidebarButton icon={eraserButtonIcon} label="지우개" onClick={() => handleButtonClick('eraser')} />
+        <SidebarButton icon={elementButtonIcon} label="요소" onClick={() => handleButtonClick('emoji')} />
+        <SidebarButton icon={penButtonIcon} label="펜" onClick={() => handleButtonClick('pen')} />
+        <SidebarButton icon={designButtonIcon} label="문패지정" onClick={() => handleButtonClick('design')} />
         <SidebarButton icon={backButtonIcon} label="되돌리기" onClick={handleUndo} />
-        <SidebarButton icon={handIcon} label="손" onClick={() => setSelectedTool('hand')} />
+        <SidebarButton icon={handIcon} onClick={() => handleButtonClick('hand')} />
       </div>
+      {(selectedTool === 'pen' || selectedTool === 'eraser') && showToolSettings && (
+        <ToolSettings
+          selectedTool={selectedTool}
+          toolSize={toolSize}
+          setToolSize={setToolSize}
+          selectedColor={selectedColor}
+          setSelectedColor={setSelectedColor}
+          eraserSize={eraserSize}
+          setEraserSize={setEraserSize}
+          showEmojiPicker={showEmojiPicker}
+          closeSettings={closeSettings}
+          addEmojiToCanvas={handleSelectEmoji}
+        />
+      )}
+      {showTextTool && (
+        <div className="text-tool-container">
+          <TextTool onAddText={handleAddText} />
+          <button className="cancel-button" onClick={closeSettings}>
+            닫기
+          </button>
+        </div>
+      )}
+      {showEmojiPicker && (
+        <ToolSettings
+          selectedTool="emoji"
+          showEmojiPicker={showEmojiPicker}
+          closeSettings={closeSettings}
+        />
+      )}
       <CanvasComponent
+        ref={canvasRef}
         selectedTool={selectedTool}
         toolSize={toolSize}
-        eraserSize={eraserSize} // 지우개 크기 전달
+        eraserSize={eraserSize}
         image={image}
         onSaveHistory={saveHistory}
-        isAltPressed={isAltPressed}
-        selectedColor={selectedColor} // 선택된 색상 전달
+        selectedColor={selectedColor}
       />
     </div>
   );

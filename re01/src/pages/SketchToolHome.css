@@ -6,18 +6,47 @@
   background-color: #fff;
 }
 
+/* 적용 버튼 컨테이너 스타일 */
+.apply-button-container {
+  position: fixed;
+  right: 1.5%;
+  bottom: 2%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+}
+
+/* 적용 버튼 스타일 */
 .apply-button {
   display: flex;
   align-items: center;
   background-color: transparent;
   border: none;
   cursor: pointer;
-  font-size: 1.25rem; /* 저장하기 버튼과 동일한 폰트 크기 */
+  font-size: 1.5rem;
   font-family: 'HUFS_M', sans-serif;
-  color: #fff; /* 저장하기 버튼과 동일한 색상 */
-  margin-left: 20px; /* 저장하기 버튼 옆으로 이동 */
+  color: #fff;
+  margin-left: 20px;
 }
 
+/* 되돌리기 버튼 스타일 */
+.undo-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  color: white;
+  margin-top: 20px; /* 문패지정 버튼 밑에 위치하도록 간격 추가 */
+}
+
+/* 적용 아이콘 스타일 */
+.apply-icon {
+  width: 24px;
+  height: 24px;
+  margin-left: 10px;
+}
 
 /* 상단 바 스타일 */
 .top-bar {
@@ -25,12 +54,12 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 7%;
+  height: 70px;
   background-color: #4b4b4b;
   display: flex;
   align-items: center;
   padding: 0 1.5%;
-  gap: 20px;
+  gap: 30px;
 }
 
 /* 뒤로 가기 버튼 스타일 */
@@ -42,7 +71,7 @@
   cursor: pointer;
   color: white;
   font-size: 1.25rem;
-  margin-right: 10px;
+  margin-right: 20px;
 }
 
 /* 홈 버튼 스타일 */
@@ -61,7 +90,6 @@
 .load-sketch-button {
   display: flex;
   align-items: center;
-  margin-left: 20px;
 }
 
 .load-sketch-button label {
@@ -90,24 +118,24 @@
 /* 구분선 스타일 */
 .separator {
   width: 2px;
-  height: 80%;
+  height: 50px;
   background-color: rgba(255, 255, 255, 0.3);
-  margin-left: 20px;
+  margin-left: 30px;
 }
 
 /* 사이드바 버튼 컨테이너 스타일 */
 .sidebar-buttons {
   position: fixed;
-  top: 7%;
+  top: 70px;
   left: 0;
-  width: 4%;
-  height: 100%;
+  width: 70px;
+  height: calc(100% - 70px);
   background-color: #4b4b4b;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2%;
-  padding: 20px 0;
+  gap: 20px;
+  padding: 10px 0;
 }
 
 /* 사이드바 버튼 스타일 */
@@ -121,9 +149,9 @@
 
 /* 버튼 아이콘 스타일 */
 .button-icon {
-  width: 75%;
-  height: 75%;
-  margin-bottom: 10%;
+  width: 50px;
+  height: 50px;
+  margin-bottom: 5px;
 }
 
 /* 버튼 라벨 스타일 */
@@ -135,15 +163,11 @@
 
 /* 캔버스 컨테이너 스타일 */
 .canvas-container {
-  margin-top: 5%;
-  left: 4%;
-  height: calc(100vh) ; /* Adjust according to the height of the top-bar */
-  display: flex;
+  margin-left: 70px; /* Adjust according to the width of the sidebar */
+  margin-top: 70px; /* Adjust according to the height of the top-bar */
+  height: calc(100vh - 70px); /* Adjust according to the height of the top-bar */
   overflow: hidden;
   position: relative;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
 }
 
 /* 패닝 기능을 위한 CSS */
@@ -200,57 +224,19 @@
   height: 24px; /* 아이콘 높이 설정 */
 }
 
-.pen-tool {
-  position: relative;
-  display: inline-block;
-}
-
-
-
-
-
-/* 새로 추가된 부분임*/
-/* 펜 도구 관련 스타일 */
-/* 펜 도구 관련 스타일 */
-.pen-tool, .eraser-tool {
-  position: relative;
-  display: inline-block;
-  z-index: 100; /* 높은 z-index로 설정하여 상호작용이 가능하도록 */
-}
-
-/* 펜 굵기 및 색상 선택 창 스타일 */
-.tool-settings-picker {
+.text-box, .emoji-box {
   position: absolute;
-  top: 0;
-  left: 100%;
-  transform: translateX(10px);
-  background-color: #ffffff;
-  border: 1px solid #ccc;
-  padding: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 200; /* 캔버스보다 앞에 위치 */
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 150px;
+  white-space: nowrap;
+  cursor: default;
+  z-index: 10;
 }
 
-/* 펜 굵기 슬라이더 스타일 */
-.tool-size-slider {
-  width: 100%; /* 슬라이더가 컨테이너에 맞게 확장 */
-  height: 10px;
-  cursor: pointer;
+.text-box {
+  font-family: Arial, sans-serif;
 }
 
-/* 반응형 스타일: 펜 및 지우개 버튼 바로 오른쪽에 위치 */
-@media (max-width: 768px) {
-  .tool-settings-picker {
-    position: fixed;
-    top: auto;
-    left: auto;
-    right: 20px;
-    bottom: 20px;
-    transform: none;
-    width: 80%;
-  }
+.emoji-box {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  vertical-align: middle;
 }

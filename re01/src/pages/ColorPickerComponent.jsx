@@ -1,21 +1,17 @@
 import React from 'react';
-import { TwitterPicker, SliderPicker } from 'react-color';
+import { ChromePicker } from 'react-color'; // 'react-color' 라이브러리 사용
 
 const ColorPickerComponent = ({ selectedColor, setSelectedColor }) => {
-  const handleChangeComplete = (color) => {
+  const handleColorChange = (color) => {
     setSelectedColor(color.hex);
   };
 
   return (
-    <div className="color-picker-container">
-      <TwitterPicker
-        color={selectedColor}
-        onChangeComplete={handleChangeComplete}
-        triangle="hide"
-      />
-      <SliderPicker
-        color={selectedColor}
-        onChangeComplete={handleChangeComplete}
+    <div>
+      <ChromePicker 
+        color={selectedColor} 
+        onChange={handleColorChange} 
+        disableAlpha={true} // 투명도 선택 비활성화 (필요에 따라 조정 가능)
       />
     </div>
   );
